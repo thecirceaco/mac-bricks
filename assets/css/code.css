@@ -1,0 +1,221 @@
+/* THEME */
+
+/*
+
+    Name:   mac
+    Author: Circea (https://github.com/thecirceaco)
+
+*/
+
+/* ---------- Editor Font ---------- */
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-weight: 400;
+  font-display: swap;
+  src: url('../fonts/jetbrains-mono.woff2') format('woff2');
+}
+
+/* ---------- Tokens ---------- */
+
+.cm-s-mac {
+  --mac-cm-font:
+    'JetBrains Mono', 'Menlo', 'Consolas', 'DejaVu Sans Mono', monospace; /* font face */
+  --mac-cm-font-size: 16px; /* font size */
+
+  --mac-cm-bg: hsla(208, 15%, 19%, 1); /* editor background */
+  --mac-cm-bg-gutter: hsla(220, 13%, 19%, 1); /* gutter background */
+  --mac-cm-text: hsla(220, 14%, 73%, 1); /* main text color */
+  --mac-cm-text-muted: hsla(220, 7%, 38%, 1); /* line numbers / comments */
+  --mac-cm-line-highlight: hsla(225, 100%, 80%, 0.04); /* line highlight */
+
+  --mac-cm-selection: hsla(45, 100%, 65%, 0.2); /* soft yellow selection */
+  --mac-cm-cursor: hsla(45, 100%, 65%, 1); /* cursor */
+  --mac-cm-cursor-size: 2px; /* cursor size */
+
+  --mac-cm-match-bracket-border: hsla(45, 100%, 65%, 1); /* border */
+  --mac-cm-match-bracket-bg: hsla(45, 100%, 65%, 0.31); /* background */
+  --mac-cm-match-bracket-fg: hsla(45, 100%, 65%, 1); /* text */
+  --mac-cm-nonmatch-bracket: hsla(355, 65%, 66%, 1); /* error red */
+
+  --mac-cm-red: hsla(355, 65%, 66%, 1); /* builtin, error, tag, var */
+  --mac-cm-orange: hsla(29, 54%, 62%, 1); /* numbers, attrs, qualifiers */
+  --mac-cm-purple: hsla(286, 43%, 65%, 1); /* keywords, emphasis */
+  --mac-cm-gold: hsla(45, 69%, 70%, 1); /* definitions */
+  --mac-cm-cyan: hsla(187, 44%, 54%, 1); /* operators, properties */
+  --mac-cm-green: hsla(95, 38%, 60%, 1); /* strings, links */
+  --mac-cm-gray: hsla(219, 7%, 54%, 1); /* CSS vars in stylesheets */
+
+  font-family: var(--mac-cm-font) !important;
+}
+
+/* ---------- Layout ---------- */
+
+/* Wrapper: bg/text + size */
+.cm-s-mac.CodeMirror-wrap {
+  background-color: var(--mac-cm-bg);
+  color: var(--mac-cm-text);
+  font-size: var(--mac-cm-font-size);
+}
+
+/* Selection (override Bricks defaults) */
+.cm-s-mac.CodeMirror .CodeMirror-line::selection,
+.cm-s-mac.CodeMirror .CodeMirror-line > span::selection,
+.cm-s-mac.CodeMirror .CodeMirror-line > span > span::selection,
+.cm-s-mac.CodeMirror .CodeMirror-selected {
+  background-color: var(--mac-cm-selection) !important;
+}
+.cm-s-mac.CodeMirror .CodeMirror-line::-moz-selection,
+.cm-s-mac.CodeMirror .CodeMirror-line > span::-moz-selection,
+.cm-s-mac.CodeMirror .CodeMirror-line > span > span::-moz-selection {
+  background-color: var(--mac-cm-selection) !important;
+}
+
+/* Gutter & line numbers */
+.cm-s-mac .CodeMirror-gutter,
+.cm-s-mac .CodeMirror-gutters {
+  background-color: var(--mac-cm-bg-gutter);
+  border: none;
+}
+.cm-s-mac .CodeMirror-linenumber,
+.cm-s-mac .CodeMirror-linenumbers {
+  background-color: transparent;
+  color: var(--mac-cm-text-muted) !important;
+}
+
+/* Code lines */
+.cm-s-mac .CodeMirror-lines {
+  background-color: transparent;
+  color: var(--mac-cm-text) !important;
+}
+
+/* Cursor (now using your yellow) */
+.cm-s-mac .CodeMirror-cursor {
+  border-left: var(--mac-cm-cursor-size) solid var(--mac-cm-cursor) !important;
+}
+
+/* Matching brackets (your yellow), non-matching (red underline) */
+.cm-s-mac .CodeMirror-matchingbracket {
+  background-color: var(--mac-cm-match-bracket-bg) !important;
+  border-color: var(--mac-cm-match-bracket-border) !important;
+  color: var(--mac-cm-match-bracket-fg) !important;
+}
+.cm-s-mac .CodeMirror-matchingtag {
+  background-color: transparent;
+  border-bottom: 2px solid var(--mac-cm-match-bracket-border);
+  color: var(--mac-cm-text) !important;
+}
+.cm-s-mac .CodeMirror-nonmatchingbracket {
+  background-color: transparent;
+  border-bottom: 2px solid var(--mac-cm-nonmatch-bracket);
+  color: var(--mac-cm-text) !important;
+}
+
+/* Fold gutter */
+.cm-s-mac .CodeMirror-foldgutter,
+.cm-s-mac .CodeMirror-foldgutter-folded,
+.cm-s-mac .CodeMirror-foldgutter-open,
+.cm-s-mac .CodeMirror-foldmarker {
+  background-color: transparent;
+  border: none;
+  color: var(--mac-cm-text-muted) !important;
+  text-shadow: none;
+}
+
+/* Active line */
+.cm-s-mac .CodeMirror-activeline-background {
+  background-color: var(--mac-cm-line-highlight);
+}
+
+/* ---------- Syntax Highlighting ---------- */
+
+/* Builtins, errors, tag names, generic variables */
+.cm-s-mac .cm-builtin,
+.cm-s-mac .cm-error,
+.cm-s-mac .cm-header,
+.cm-s-mac .cm-negative,
+.cm-s-mac .cm-positive,
+.cm-s-mac .cm-string-2,
+.cm-s-mac .cm-tag,
+.cm-s-mac .cm-variable {
+  color: var(--mac-cm-red);
+}
+
+/* Comments & quotes */
+.cm-s-mac .cm-comment,
+.cm-s-mac .cm-quote {
+  color: var(--mac-cm-text-muted);
+  font-style: italic;
+}
+
+/* Strong */
+.cm-s-mac .cm-header .cm-strong,
+.cm-s-mac .cm-strong {
+  color: var(--mac-cm-orange);
+  font-weight: 700;
+}
+
+/* Emphasis */
+.cm-s-mac .cm-em,
+.cm-s-mac .cm-header .cm-em {
+  color: var(--mac-cm-purple);
+  font-style: italic;
+}
+
+/* Atoms, attributes, numbers, qualifiers */
+.cm-s-mac .cm-atom,
+.cm-s-mac .cm-attribute,
+.cm-s-mac .cm-number,
+.cm-s-mac .cm-qualifier {
+  color: var(--mac-cm-orange);
+}
+
+/* Links */
+.cm-s-mac .cm-link {
+  border-bottom: 1px solid var(--mac-cm-green);
+  color: var(--mac-cm-green);
+}
+
+/* Keywords */
+.cm-s-mac .cm-keyword {
+  color: var(--mac-cm-purple);
+}
+
+/* Definitions */
+.cm-s-mac .cm-def {
+  color: var(--mac-cm-gold);
+}
+
+/* Operators & properties */
+.cm-s-mac .cm-m-css.cm-atom,
+.cm-s-mac .cm-m-css.cm-builtin,
+.cm-s-mac .cm-m-lua.cm-variable,
+.cm-s-mac .cm-operator,
+.cm-s-mac .cm-property {
+  color: var(--mac-cm-cyan);
+}
+
+/* Strings */
+.cm-s-mac .cm-string {
+  color: var(--mac-cm-green);
+}
+
+/* Neutral punctuation & meta */
+.cm-s-mac .cm-bracket,
+.cm-s-mac .cm-m-css.cm-property,
+.cm-s-mac .cm-meta,
+.cm-s-mac .cm-punctuation {
+  color: var(--mac-cm-text);
+}
+
+/* CSS custom properties in stylesheets */
+.cm-s-mac .cm-m-css.cm-variable {
+  color: var(--mac-cm-gray);
+}
+
+/* Kill Emmet preview bubble */
+.cm-s-mac .emmet-abbreviation-preview {
+  display: none !important;
+}
+
+/* PROJECT */
