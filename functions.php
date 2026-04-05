@@ -28,8 +28,6 @@ require_once __DIR__ . '/inc/theme.php';
  * - assets/css/builder.css    (for builder styles)
  * - assets/css/client.css     (for non-admin styles)
  * - assets/css/admin.css      (for backend styles)
- * - assets/css/main.css       (for frontend styles)
- * - assets/js/main.js         (for frontend scripts)
  * - functions.php             (for custom functions)
  */
 

@@ -11,7 +11,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 function mac_bricks_register_shared_hooks(): void {
     add_action( 'admin_enqueue_scripts', 'mac_bricks_enqueue_backend_styles' );
     add_action( 'wp_enqueue_scripts', 'mac_bricks_enqueue_builder_styles' );
-    add_action( 'wp_enqueue_scripts', 'mac_bricks_enqueue_frontend_assets', 20 );
 
     add_filter( 'bricks/builder/codemirror_config', 'mac_bricks_override_codemirror_config' );
     add_filter( 'bricks/builder/save_messages', 'mac_bricks_get_save_messages' );
@@ -39,24 +38,6 @@ function mac_bricks_enqueue_builder_styles(): void {
 
     mac_bricks_enqueue_style( 'mac-bricks-code-styles', '/assets/css/code.css' );
     mac_bricks_enqueue_style( 'mac-bricks-builder-styles', '/assets/css/builder.css' );
-}
-
-/**
- * Enqueue frontend assets outside the Bricks builder.
- */
-function mac_bricks_enqueue_frontend_assets(): void {
-    if ( mac_bricks_is_builder() ) {
-        return;
-    }
-
-    mac_bricks_enqueue_script(
-        'mac-bricks-main-scripts',
-        '/assets/js/main.js',
-        wp_script_is( 'bricks-frontend', 'registered' ) ? [ 'bricks-frontend' ] : [],
-        true
-    );
-
-    mac_bricks_enqueue_style( 'mac-bricks-main-styles', '/assets/css/main.css' );
 }
 
 /**
@@ -216,35 +197,6 @@ function mac_bricks_enqueue_style( string $handle, string $rel_path, array $deps
         mac_bricks_asset_url( $rel_path ),
         $deps,
         (string) filemtime( $file )
-    );
-}
-
-/**
- * Enqueue a script if the file exists.
- *
- * @param string             $handle    WordPress handle.
- * @param string             $rel_path  Theme-relative file path.
- * @param array<int, string> $deps      Optional dependencies.
- * @param bool               $in_footer Whether to load in the footer.
- */
-function mac_bricks_enqueue_script(
-    string $handle,
-    string $rel_path,
-    array $deps = [],
-    bool $in_footer = false
-): void {
-    $file = mac_bricks_asset_path( $rel_path );
-
-    if ( ! is_readable( $file ) ) {
-        return;
-    }
-
-    wp_enqueue_script(
-        $handle,
-        mac_bricks_asset_url( $rel_path ),
-        $deps,
-        (string) filemtime( $file ),
-        $in_footer
     );
 }
 
