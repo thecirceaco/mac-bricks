@@ -55,18 +55,4 @@ add_filter( 'bricks/code/echo_function_names', function (): array {
     ];
 } );
 
-/**
- * Custom authentication pages.
- *
- * https://academy.bricksbuilder.io/article/custom-authentication-pages/
- * https://academy.bricksbuilder.io/article/filter-bricks-auth-custom_login_redirect/
- * https://academy.bricksbuilder.io/article/filter-bricks-auth-custom_registration_redirect/
- * https://academy.bricksbuilder.io/article/filter-bricks-auth-custom_lost_password_redirect/
- * https://academy.bricksbuilder.io/article/filter-bricks-auth-custom_reset_password_redirect/
- */
-add_filter( 'bricks/auth/custom_registration_redirect', fn(): int => 0 );
-add_filter( 'bricks/auth/custom_login_redirect', fn(): int => 0 );
-add_filter( 'bricks/auth/custom_lost_password_redirect', fn(): int => 0 );
-add_filter( 'bricks/auth/custom_reset_password_redirect', fn(): int => 0 );
-
 // PROJECT
