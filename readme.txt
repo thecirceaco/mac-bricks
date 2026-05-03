@@ -13,9 +13,5 @@ Company standard Bricks child theme for WordPress projects.
 
 == Changelog ==
 
-= 1.0.1 =
-* Aligned repo-local governance pointers with the canonical `mac` governance source.
-* Kept the Bricks child-theme runtime unchanged from `1.0.0`.
-
 = 1.0.0 =
 * Initial release
