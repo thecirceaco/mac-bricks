@@ -4,9 +4,10 @@ Company standard Bricks child theme for WordPress projects.
 
 ## Workflow
 
-- `dev` is the default development branch.
-- `main` tracks stable releases.
-- Releases are cut from `main` with version tags matching `v*`.
+- `main` is the trunk and default work branch.
+- Use short-lived branches only when a change needs isolation.
+- Releases are cut from version tags on `main`.
+- Maintenance commits on `main` are not product releases by themselves.
 
 ## License
 
