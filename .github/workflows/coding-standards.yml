@@ -26,5 +26,8 @@ jobs:
       - name: Install dependencies
         run: composer install --no-interaction --no-progress
 
+      - name: Audit dependencies
+        run: composer audit --no-interaction
+
       - name: Run PHPCS
         run: composer lint
