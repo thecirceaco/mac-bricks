@@ -5,42 +5,165 @@ on:
     tags:
       - 'v*'
 
-permissions:
-  contents: write
+permissions: {}
+
+defaults:
+  run:
+    shell: bash
 
 jobs:
-  build:
+  verify:
+    name: Verify release
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
 
-      - name: Prepare release directory
+      - name: Check tag, branch and version
+        env:
+          TAG: ${{ github.ref_name }}
         run: |
-          mkdir -p dist/mac-bricks
-          rsync -av \
-            --exclude='composer.lock' \
-            --exclude='vendor' \
-            --exclude='node_modules' \
-            --exclude='.env' \
-            --exclude='.env.local' \
-            --exclude='.git*' \
-            --exclude='.github' \
-            --exclude='.codex' \
-            --exclude='AGENTS.md' \
-            --exclude='README.md' \
-            --exclude='readme.txt' \
-            --exclude='composer.json' \
-            --exclude='phpcs.xml.dist' \
-            --exclude='dist' \
-            ./ dist/mac-bricks/
+          fail() { echo "::error::$*"; exit 1; }
 
+          [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || fail "Tag $TAG is not in the form vX.Y.Z."
+
+          commit=$(git rev-parse --verify --quiet "refs/tags/$TAG^{commit}") || fail "Tag $TAG was not found."
+          [ "$commit" = "$GITHUB_SHA" ] && [ "$(git rev-parse HEAD)" = "$GITHUB_SHA" ] ||
+            fail "Tag $TAG points to $commit, but this run is for $GITHUB_SHA."
+
+          git merge-base --is-ancestor "$commit" refs/remotes/origin/main ||
+            fail "Tag $TAG points to $commit, which is not on origin/main."
+
+          # Read the headers the way WordPress does: first match, trailing */ or ?> removed.
+          version=${TAG#v}
+          style_version=$(grep -m 1 -i -E '^([[:blank:]]*<\?php)?[[:blank:]/*#@]*Version:' style.css |
+            sed -E 's/^[^:]*:[[:blank:]]*//; s/[[:space:]]*(\*\/|\?>).*$//; s/[[:space:]]+$//' || true)
+          file_version=$(grep -m 1 -E '^[[:blank:]]*\*[[:blank:]]*@version[[:blank:]]' functions.php |
+            sed -E 's/^[^@]*@version[[:blank:]]+//; s/[[:space:]]+$//' || true)
+          [ "$style_version" = "$version" ] || fail "style.css Version is '$style_version', expected '$version'."
+          [ "$file_version" = "$version" ] || fail "functions.php @version is '$file_version', expected '$version'."
+
+          echo "Releasing $TAG from $commit."
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: '8.3'
+          coverage: none
+          tools: composer:v2
+
+      - name: Install dependencies
+        run: composer install --no-interaction --no-progress
+
+      - name: Run PHPCS
+        run: composer lint
+
+  build:
+    name: Build ZIP
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    env:
+      ZIP: mac-bricks-${{ github.ref_name }}.zip
+    outputs:
+      sha256: ${{ steps.checksum.outputs.sha256 }}
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # .gitattributes (export-ignore) is the only list of files kept out of the ZIP.
       - name: Create ZIP
         run: |
-          cd dist
-          zip -r mac-bricks-${GITHUB_REF_NAME}.zip mac-bricks
+          mkdir dist
+          git archive --format=zip --prefix=mac-bricks/ --output="dist/$ZIP" "$GITHUB_SHA"
 
-      - name: Upload release asset
-        uses: softprops/action-gh-release@v2
+      - name: Check ZIP contents
+        run: |
+          zipinfo -1 "dist/$ZIP" > "$RUNNER_TEMP/files.txt"
+
+          if grep -v '^mac-bricks/' "$RUNNER_TEMP/files.txt"; then
+            echo "::error::The paths above are outside the mac-bricks/ folder."
+            exit 1
+          fi
+
+          # To ship a new top-level path, add it here; to keep a file out, use .gitattributes.
+          expected='LICENSE assets functions.php inc index.php screenshot.png style.css'
+          actual=$(sed -n -E 's#^mac-bricks/([^/]+).*#\1#p' "$RUNNER_TEMP/files.txt" | LC_ALL=C sort -u | paste -s -d ' ' -)
+          if [ "$actual" != "$expected" ]; then
+            echo "::error::The ZIP ships '$actual' at the top level, expected '$expected'."
+            exit 1
+          fi
+
+          if grep -i -E '(^|/)\.|\.md$' "$RUNNER_TEMP/files.txt"; then
+            echo "::error::The hidden or Markdown files above would ship."
+            exit 1
+          fi
+
+      - name: Compute SHA-256
+        id: checksum
+        run: |
+          sha256=$(sha256sum "dist/$ZIP" | cut -d ' ' -f 1)
+          echo "sha256=$sha256" >> "$GITHUB_OUTPUT"
+          echo "SHA-256 of \`$ZIP\`: \`$sha256\`" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
-          files: dist/mac-bricks-${{ github.ref_name }}.zip
+          subject-path: dist/${{ env.ZIP }}
+
+      - name: Upload ZIP
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: release-zip
+          path: dist/${{ env.ZIP }}
+          if-no-files-found: error
+
+  publish:
+    name: Publish release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      TAG: ${{ github.ref_name }}
+      ZIP: mac-bricks-${{ github.ref_name }}.zip
+      SHA256: ${{ needs.build.outputs.sha256 }}
+
+    steps:
+      - name: Download ZIP
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: release-zip
+          path: dist
+
+      - name: Verify SHA-256
+        run: echo "$SHA256  dist/$ZIP" | sha256sum --check --strict
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tagged=$(gh api "repos/$GITHUB_REPOSITORY/commits/refs/tags/$TAG" --jq .sha)
+          if [ "$tagged" != "$GITHUB_SHA" ]; then
+            echo "::error::Tag $TAG now points to $tagged, but $GITHUB_SHA was built."
+            exit 1
+          fi
+
+          {
+            echo "SHA-256 of \`$ZIP\`: \`$SHA256\`"
+            echo
+            echo "Check its build provenance with \`gh attestation verify $ZIP --repo $GITHUB_REPOSITORY\`."
+          } > "$RUNNER_TEMP/notes.md"
+
+          gh release create "$TAG" "dist/$ZIP" --repo "$GITHUB_REPOSITORY" --title "$TAG" \
+            --notes-file "$RUNNER_TEMP/notes.md" --verify-tag
