@@ -41,6 +41,6 @@ jobs:
           zip -r mac-bricks-${GITHUB_REF_NAME}.zip mac-bricks
 
       - name: Upload release asset
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: dist/mac-bricks-${{ github.ref_name }}.zip
