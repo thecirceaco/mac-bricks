@@ -202,12 +202,11 @@ function mac_bricks_enqueue_style( string $handle, string $rel_path, array $deps
         return;
     }
 
-    wp_enqueue_style(
-        $handle,
-        mac_bricks_asset_url( $rel_path ),
-        $deps,
-        (string) filemtime( $file )
-    );
+    // Unescaped on purpose: WordPress escapes the URL when it prints the tag,
+    // and would read the # of an escaped & or ' as the start of a fragment.
+    $src = rtrim( get_stylesheet_directory_uri(), '/' ) . '/' . ltrim( $rel_path, '/' );
+
+    wp_enqueue_style( $handle, $src, $deps, (string) filemtime( $file ) );
 }
 
 /**
@@ -222,14 +221,15 @@ function mac_bricks_is_builder(): bool {
  * Build the URL of a file in the theme's assets folder.
  *
  * @param string $rel_path Theme-relative file path, e.g. '/assets/css/admin.css'.
- * @return string URL, or an empty string when mac_bricks_asset_path() rejects the path.
+ * @return string URL escaped with esc_url(), or an empty string when
+ *                mac_bricks_asset_path() rejects the path.
  */
 function mac_bricks_asset_url( string $rel_path ): string {
     if ( '' === mac_bricks_asset_path( $rel_path ) ) {
         return '';
     }
 
-    return rtrim( get_stylesheet_directory_uri(), '/' ) . '/' . ltrim( $rel_path, '/' );
+    return esc_url( rtrim( get_stylesheet_directory_uri(), '/' ) . '/' . ltrim( $rel_path, '/' ) );
 }
 
 /**
@@ -238,6 +238,9 @@ function mac_bricks_asset_url( string $rel_path ): string {
  * Paths containing '..' or a NUL byte are refused before the file system is
  * touched. Other paths are resolved with realpath() and must lead to a file
  * inside assets/, also after following symlinks.
+ *
+ * The result is a file-system path and is returned unescaped, since escaping
+ * could change it; it can only be the real path of a file inside assets/.
  *
  * @param string $rel_path Theme-relative file path, e.g. '/assets/css/admin.css'.
  * @return string Real path of the file, or an empty string for any other path.
