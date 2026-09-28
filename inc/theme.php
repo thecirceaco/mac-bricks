@@ -43,10 +43,14 @@ function mac_bricks_enqueue_builder_styles(): void {
 /**
  * Apply CodeMirror configuration overrides for Bricks.
  *
- * @param array<string, mixed> $config Existing Bricks CodeMirror config.
- * @return array<string, mixed>
+ * @param mixed $config Existing Bricks CodeMirror config.
+ * @return array<string, mixed> Empty when $config is not an array.
  */
-function mac_bricks_override_codemirror_config( array $config ): array {
+function mac_bricks_override_codemirror_config( mixed $config = [] ): array {
+    if ( ! is_array( $config ) ) {
+        return [];
+    }
+
     return array_merge(
         $config,
         [
@@ -160,10 +164,14 @@ function mac_bricks_get_save_messages(): array {
 /**
  * Remove selected Bricks image sizes.
  *
- * @param array<int, string> $sizes Registered image sizes.
- * @return array<int, string>
+ * @param mixed $sizes Registered image sizes.
+ * @return array<int, string> Empty when $sizes is not an array.
  */
-function mac_bricks_filter_image_sizes( array $sizes ): array {
+function mac_bricks_filter_image_sizes( mixed $sizes = [] ): array {
+    if ( ! is_array( $sizes ) ) {
+        return [];
+    }
+
     return array_values(
         array_diff(
             $sizes,
@@ -184,11 +192,15 @@ function mac_bricks_filter_image_sizes( array $sizes ): array {
  * Does nothing unless the handle keeps at least one character after
  * sanitizing and the path resolves to a readable .css file inside assets/.
  *
- * @param string             $handle   WordPress handle, reduced to a-z, 0-9 and dashes.
- * @param string             $rel_path Theme-relative file path, e.g. '/assets/css/admin.css'.
- * @param array<int, string> $deps     Optional dependencies.
+ * @param mixed $handle   WordPress handle, reduced to a-z, 0-9 and dashes.
+ * @param mixed $rel_path Theme-relative file path, e.g. '/assets/css/admin.css'.
+ * @param mixed $deps     Optional dependency handles; only the strings of an array are used.
  */
-function mac_bricks_enqueue_style( string $handle, string $rel_path, array $deps = [] ): void {
+function mac_bricks_enqueue_style( mixed $handle = '', mixed $rel_path = '', mixed $deps = [] ): void {
+    $handle   = is_scalar( $handle ) ? (string) $handle : '';
+    $rel_path = is_scalar( $rel_path ) ? (string) $rel_path : '';
+    $deps     = is_array( $deps ) ? array_values( array_filter( $deps, 'is_string' ) ) : [];
+
     // The handle ends up in the <link> tag's id and in style_loader_tag filters.
     $handle = (string) preg_replace( '/[^a-z0-9-]/', '', strtolower( $handle ) );
     $file   = mac_bricks_asset_path( $rel_path );
@@ -220,11 +232,13 @@ function mac_bricks_is_builder(): bool {
 /**
  * Build the URL of a file in the theme's assets folder.
  *
- * @param string $rel_path Theme-relative file path, e.g. '/assets/css/admin.css'.
+ * @param mixed $rel_path Theme-relative file path, e.g. '/assets/css/admin.css'.
  * @return string URL escaped with esc_url(), or an empty string when
  *                mac_bricks_asset_path() rejects the path.
  */
-function mac_bricks_asset_url( string $rel_path ): string {
+function mac_bricks_asset_url( mixed $rel_path = '' ): string {
+    $rel_path = is_scalar( $rel_path ) ? (string) $rel_path : '';
+
     if ( '' === mac_bricks_asset_path( $rel_path ) ) {
         return '';
     }
@@ -242,11 +256,13 @@ function mac_bricks_asset_url( string $rel_path ): string {
  * The result is a file-system path and is returned unescaped, since escaping
  * could change it; it can only be the real path of a file inside assets/.
  *
- * @param string $rel_path Theme-relative file path, e.g. '/assets/css/admin.css'.
+ * @param mixed $rel_path Theme-relative file path, e.g. '/assets/css/admin.css'.
  * @return string Real path of the file, or an empty string for any other path.
  */
-function mac_bricks_asset_path( string $rel_path ): string {
-    if ( str_contains( $rel_path, '..' ) || str_contains( $rel_path, "\0" ) ) {
+function mac_bricks_asset_path( mixed $rel_path = '' ): string {
+    $rel_path = is_scalar( $rel_path ) ? (string) $rel_path : '';
+
+    if ( '' === $rel_path || str_contains( $rel_path, '..' ) || str_contains( $rel_path, "\0" ) ) {
         return '';
     }
 
