@@ -181,17 +181,21 @@ function mac_bricks_filter_image_sizes( array $sizes ): array {
 /**
  * Enqueue a stylesheet from the theme's assets folder.
  *
- * Does nothing unless the path resolves to a readable .css file inside assets/.
+ * Does nothing unless the handle keeps at least one character after
+ * sanitizing and the path resolves to a readable .css file inside assets/.
  *
- * @param string             $handle   WordPress handle.
+ * @param string             $handle   WordPress handle, reduced to a-z, 0-9 and dashes.
  * @param string             $rel_path Theme-relative file path, e.g. '/assets/css/admin.css'.
  * @param array<int, string> $deps     Optional dependencies.
  */
 function mac_bricks_enqueue_style( string $handle, string $rel_path, array $deps = [] ): void {
-    $file = mac_bricks_asset_path( $rel_path );
+    // The handle ends up in the <link> tag's id and in style_loader_tag filters.
+    $handle = (string) preg_replace( '/[^a-z0-9-]/', '', strtolower( $handle ) );
+    $file   = mac_bricks_asset_path( $rel_path );
 
     if (
-        '' === $file
+        '' === $handle
+        || '' === $file
         || 'css' !== strtolower( pathinfo( $file, PATHINFO_EXTENSION ) )
         || ! is_readable( $file )
     ) {
