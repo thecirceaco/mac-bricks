@@ -179,16 +179,22 @@ function mac_bricks_filter_image_sizes( array $sizes ): array {
 }
 
 /**
- * Enqueue a stylesheet if the file exists.
+ * Enqueue a stylesheet from the theme's assets folder.
+ *
+ * Does nothing unless the path resolves to a readable .css file inside assets/.
  *
  * @param string             $handle   WordPress handle.
- * @param string             $rel_path Theme-relative file path.
+ * @param string             $rel_path Theme-relative file path, e.g. '/assets/css/admin.css'.
  * @param array<int, string> $deps     Optional dependencies.
  */
 function mac_bricks_enqueue_style( string $handle, string $rel_path, array $deps = [] ): void {
     $file = mac_bricks_asset_path( $rel_path );
 
-    if ( ! is_readable( $file ) ) {
+    if (
+        '' === $file
+        || 'css' !== strtolower( pathinfo( $file, PATHINFO_EXTENSION ) )
+        || ! is_readable( $file )
+    ) {
         return;
     }
 
@@ -209,17 +215,48 @@ function mac_bricks_is_builder(): bool {
 }
 
 /**
- * Build a theme-relative asset URL.
+ * Build the URL of a file in the theme's assets folder.
+ *
+ * @param string $rel_path Theme-relative file path, e.g. '/assets/css/admin.css'.
+ * @return string URL, or an empty string when mac_bricks_asset_path() rejects the path.
  */
 function mac_bricks_asset_url( string $rel_path ): string {
-    return rtrim( get_stylesheet_directory_uri(), '/' ) . $rel_path;
+    if ( '' === mac_bricks_asset_path( $rel_path ) ) {
+        return '';
+    }
+
+    return rtrim( get_stylesheet_directory_uri(), '/' ) . '/' . ltrim( $rel_path, '/' );
 }
 
 /**
- * Build a theme-relative asset path.
+ * Resolve a theme-relative path to a file in the theme's assets folder.
+ *
+ * Paths containing '..' or a NUL byte are refused before the file system is
+ * touched. Other paths are resolved with realpath() and must lead to a file
+ * inside assets/, also after following symlinks.
+ *
+ * @param string $rel_path Theme-relative file path, e.g. '/assets/css/admin.css'.
+ * @return string Real path of the file, or an empty string for any other path.
  */
 function mac_bricks_asset_path( string $rel_path ): string {
-    return rtrim( get_stylesheet_directory(), '/' ) . $rel_path;
+    if ( str_contains( $rel_path, '..' ) || str_contains( $rel_path, "\0" ) ) {
+        return '';
+    }
+
+    $theme  = rtrim( get_stylesheet_directory(), '/' );
+    $assets = realpath( $theme . '/assets' );
+    $file   = realpath( $theme . '/' . ltrim( $rel_path, '/' ) );
+
+    if (
+        false === $assets
+        || false === $file
+        || ! str_starts_with( $file, $assets . DIRECTORY_SEPARATOR )
+        || ! is_file( $file )
+    ) {
+        return '';
+    }
+
+    return $file;
 }
 
 mac_bricks_register_shared_hooks();
