@@ -23,6 +23,8 @@ function mac_bricks_register_shared_hooks(): void {
 function mac_bricks_enqueue_backend_styles(): void {
     mac_bricks_enqueue_style( 'mac-bricks-admin-styles', '/assets/css/admin.css' );
 
+    // The role check is intentional: client roles can carry admin-like
+    // capabilities. client.css is cosmetic only, not access control.
     if ( ! current_user_can( 'administrator' ) ) {
         mac_bricks_enqueue_style( 'mac-bricks-client-styles', '/assets/css/client.css' );
     }
