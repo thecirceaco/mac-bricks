@@ -1,14 +1,14 @@
-.vscode/launch.json
-.vscode/tasks.json
+.vscode/
 
 .DS_Store
 Thumbs.db
 *~
 
 *.log
+*.sql
 
-.env
-.env.local
+.env*
+auth.json
 
 node_modules/
 vendor/
