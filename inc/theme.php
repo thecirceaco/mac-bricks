@@ -196,7 +196,8 @@ function mac_bricks_filter_image_sizes( mixed $sizes = [] ): array {
  *
  * @param mixed $handle   WordPress handle, reduced to a-z, 0-9 and dashes.
  * @param mixed $rel_path Theme-relative file path, e.g. '/assets/css/admin.css'.
- * @param mixed $deps     Optional dependency handles; only the strings of an array are used.
+ * @param mixed $deps     Optional dependency handles; only the strings of an array are used,
+ *                        and the stylesheet's own handle is left out.
  */
 function mac_bricks_enqueue_style( mixed $handle = '', mixed $rel_path = '', mixed $deps = [] ): void {
     $handle   = is_scalar( $handle ) ? (string) $handle : '';
@@ -206,6 +207,10 @@ function mac_bricks_enqueue_style( mixed $handle = '', mixed $rel_path = '', mix
     // The handle ends up in the <link> tag's id and in style_loader_tag filters.
     $handle = (string) preg_replace( '/[^a-z0-9-]/', '', strtolower( $handle ) );
     $file   = mac_bricks_asset_path( $rel_path );
+
+    // WordPress never finishes resolving a stylesheet that depends on itself:
+    // it recurses until PHP runs out of memory.
+    $deps = array_values( array_diff( $deps, [ $handle ] ) );
 
     if (
         '' === $handle
