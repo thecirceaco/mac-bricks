@@ -4,6 +4,7 @@
 /.codex             export-ignore
 /.gitignore         export-ignore
 /.gitattributes     export-ignore
+/tests              export-ignore
 
 README.md           export-ignore
 AGENTS.md           export-ignore
@@ -11,6 +12,7 @@ readme.txt          export-ignore
 composer.json       export-ignore
 composer.lock       export-ignore
 phpcs.xml.dist      export-ignore
+phpunit.xml.dist    export-ignore
 
 node_modules        export-ignore
 vendor              export-ignore

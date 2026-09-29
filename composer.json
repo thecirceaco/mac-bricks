@@ -5,12 +5,14 @@
   "license": "GPL-3.0-or-later",
   "require-dev": {
     "dealerdirect/phpcodesniffer-composer-installer": "^1.1",
+    "phpunit/phpunit": "^11.0",
     "squizlabs/php_codesniffer": "^3.13.6",
     "wp-coding-standards/wpcs": "^3.4.1"
   },
   "scripts": {
     "lint": "phpcs --standard=phpcs.xml.dist",
-    "lint:fix": "phpcbf --standard=phpcs.xml.dist"
+    "lint:fix": "phpcbf --standard=phpcs.xml.dist",
+    "test": "phpunit --configuration phpunit.xml.dist"
   },
   "config": {
     "allow-plugins": {

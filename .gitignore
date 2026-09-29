@@ -12,6 +12,7 @@ auth.json
 
 node_modules/
 vendor/
+.phpunit.cache/
 
 .ddev/
 .ddev/.dbimageBuild/
